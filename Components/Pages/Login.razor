@@ -2,14 +2,20 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Security.Claims
 @using BlazorAuth.Components.Middleware
+@using BlazorAuth.Components.Shared
 @using BlazorAuth.Data
 @using Microsoft.AspNetCore.Authentication.Cookies
+@inject UserService userService
+
 
 @inject NavigationManager nav
 
 <h1>Login</h1>
 <div class="row">
     <div class="col-md-4">
+
+        <Alert @ref="alert" />
+
         <section>
             <EditForm Model="Input" method="post" OnValidSubmit="OnLogin" FormName="Login">
                 <DataAnnotationsValidator />
@@ -33,15 +39,18 @@
 </div>
 
 @code {
+    private Alert alert;
+
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();
 
     public async Task OnLogin()
     {
-        var user = AppDBContext.Verify(Input.Email, Input.Password);
+        var user = userService.Verify(Input.Email, Input.Password);
         if(user is null)
         {
             //alert
+            alert.ShowFailed("Invalid Email or Password");
             return;
         }
 

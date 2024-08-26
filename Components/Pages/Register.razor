@@ -3,6 +3,8 @@
 @using BlazorAuth.Data
 @page "/Register"
 
+@inject UserService userService
+
 @rendermode InteractiveServer
 
 
@@ -49,7 +51,7 @@
 
     public void RegisterUser()
     {
-        bool result = AppDBContext.SaveUser(
+        bool result = userService.SaveUser(
             new User
                 {
                     Email = Input.Email,
