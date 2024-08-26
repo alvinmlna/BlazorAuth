@@ -1,0 +1,73 @@
+﻿@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using BlazorAuth.Components.Middleware
+@using BlazorAuth.Data
+@using Microsoft.AspNetCore.Authentication.Cookies
+
+@inject NavigationManager nav
+
+<h1>Login</h1>
+<div class="row">
+    <div class="col-md-4">
+        <section>
+            <EditForm Model="Input" method="post" OnValidSubmit="OnLogin" FormName="Login">
+                <DataAnnotationsValidator />
+                <hr />
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.Email" class="form-control" aria-required="true" />
+                    <label for="email" class="form-label">Email</label>
+                    <ValidationMessage For="() => Input.Email" class="text-danger" />
+                </div>
+                <div class="form-floating mb-3">
+                    <InputText type="password" @bind-Value="Input.Password" class="form-control" aria-required="true" />
+                    <label for="password" class="form-label">Password</label>
+                    <ValidationMessage For="() => Input.Password" class="text-danger" />
+                </div>
+                <div>
+                    <button type="submit" class="w-100 btn btn-lg btn-primary">Login</button>
+                </div>
+            </EditForm>
+        </section>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    public async Task OnLogin()
+    {
+        var user = AppDBContext.Verify(Input.Email, Input.Password);
+        if(user is null)
+        {
+            //alert
+            return;
+        }
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.Email),
+            new Claim(ClaimTypes.Role, user.Role),
+        };
+
+        var claimIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(claimIdentity);
+        Guid key = Guid.NewGuid();
+        AuthMiddleware.Logins[key] = claimsPrincipal;
+
+        nav.NavigateTo($"/login?key={key}", true);
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+    }
+}

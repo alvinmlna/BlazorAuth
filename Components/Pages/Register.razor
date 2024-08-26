@@ -1,0 +1,87 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using BlazorAuth.Components.Shared
+@using BlazorAuth.Data
+@page "/Register"
+
+@rendermode InteractiveServer
+
+
+<h1>Register</h1>
+<div class="row">
+    <div class="col-md-4">
+
+        <Alert @ref="alert" />
+        <section>
+            <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="Register">
+                <DataAnnotationsValidator />
+                <hr />
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.Email" class="form-control" aria-required="true" />
+                    <label for="email" class="form-label">Email</label>
+                    <ValidationMessage For="() => Input.Email" class="text-danger" />
+                </div>
+                <div class="form-floating mb-3">
+                    <InputText type="password" @bind-Value="Input.Password" class="form-control" aria-required="true" />
+                    <label for="password" class="form-label">Password</label>
+                    <ValidationMessage For="() => Input.Password" class="text-danger" />
+                </div>
+                <div class="form-floating mb-3">
+                    <InputSelect class="form-select" @bind-Value="Input.Role" aria-required="true">
+                        <option value="Admin">Admin</option>
+                        <option value="DefaultUser">Default User</option>
+                    </InputSelect>
+                    <label for="role" class="form-label">Role</label>
+                    <ValidationMessage For="() => Input.Role" class="text-danger" />
+                </div>
+                <div>
+                    <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+                </div>
+            </EditForm>
+        </section>
+    </div>
+</div>
+
+@code {
+    private Alert alert;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    public void RegisterUser()
+    {
+        bool result = AppDBContext.SaveUser(
+            new User
+                {
+                    Email = Input.Email,
+                    Password = Input.Password,
+                    Role = Input.Role
+                }
+        );
+
+        if (result)
+        {
+            //register success
+            alert.ShowSuccess("Register Successfully");
+        } 
+        else
+        {
+            //register failed
+            alert.ShowFailed("Register Failed!");
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress] 
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Text)]
+        public string Role { get; set; } = "";
+    }
+}

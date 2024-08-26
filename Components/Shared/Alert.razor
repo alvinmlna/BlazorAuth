@@ -1,0 +1,42 @@
+﻿
+@if (IsVisible)
+{
+    <div class="alert @AlertType">
+        <span>@Message</span>
+        <button class="btn-close" style="float:right" @onclick="Hide"></button>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public string Message { get; set; }
+
+    public bool IsVisible { get; set; }
+    public string AlertType { get; set; }
+
+    public void ShowSuccess(string message)
+    {
+        AlertType = "alert-success";
+        Show(message);
+    }
+
+    public void ShowFailed(string message)
+    {
+        AlertType = "alert-danger";
+        Show(message);
+    }
+
+    private void Show(string message)
+    {
+        Message = message;
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Hide()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}
